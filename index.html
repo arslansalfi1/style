@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Welcome to Impossible Panel</title>
+    <style>
+        body {
+            background: #121212;
+            color: #fff;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .container {
+            background: #1e1e1e;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 0 15px rgba(0,0,0,0.7);
+            text-align: center;
+            width: 320px;
+        }
+        h1 {
+            margin-bottom: 30px;
+            font-weight: 700;
+            font-size: 1.8rem;
+        }
+        button {
+            width: 140px;
+            padding: 12px 0;
+            margin: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+        button.login-btn {
+            background: #0d6efd;
+            color: white;
+        }
+        button.login-btn:hover {
+            background: #084cd6;
+        }
+        button.register-btn {
+            background: #198754;
+            color: white;
+        }
+        button.register-btn:hover {
+            background: #0f6037;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Impossible Panel</h1>
+        <button class="login-btn" onclick="window.location.href='login/index.html'">Log In</button>
+        <button class="register-btn" onclick="window.location.href='register/index.html'">Register</button>
+    </div>
+</body>
+</html>
