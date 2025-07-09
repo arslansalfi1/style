@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Dashboard - Impossible Panel</title>
+  <style>
+    body {
+      padding: 20px;
+      font-family: Arial, sans-serif;
+      background: #0f172a;
+      color: white;
+      margin: 0;
+    }
+    h2 {
+      margin-bottom: 20px;
+    }
+    button.generate-btn {
+      margin-bottom: 20px;
+      padding: 10px;
+      background: #3b82f6;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: #1e293b;
+    }
+    th, td {
+      padding: 10px;
+      border: 1px solid #334155;
+      text-align: center;
+    }
+    th {
+      background: #334155;
+    }
+    button.action-btn {
+      margin-right: 5px;
+      padding: 5px 10px;
+      border: none;
+      border-radius: 4px;
+      color: white;
+      cursor: pointer;
+    }
+    button.block {
+      background: #ef4444;
+    }
+    button.unblock {
+      background: #22c55e;
+    }
+    button.delete {
+      background: #6b7280;
+    }
+  </style>
+</head>
+<body>
+  <h2 id="welcome">Welcome - Impossible Panel</h2>
+
+  <button class="generate-btn" id="generateKeyBtn">Generate New Key</button>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Key</th>
+        <th>Created</th>
+        <th>Expiry (hr)</th>
+        <th>Devices</th>
+        <th>Status</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody id="keysTableBody">
+      <tr><td colspan="6" style="text-align:center; padding: 15px;">Loading keys...</td></tr>
+    </tbody>
+  </table>
+
+  <script>
+    const username = localStorage.getItem('username');
+    if (!username) {
+      window.location.href = '/login.html'; // Redirect if not logged in
+    } else {
+      document.getElementById('welcome').textContent = `Welcome ${username} - Impossible Panel`;
+      fetchKeys();
+    }
+
+    async function fetchKeys() {
+      const tbody = document.getElementById('keysTableBody');
+      tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding: 15px;">Loading keys...</td></tr>';
+
+      try {
+        const res = await fetch('/api/keys/list');
+        const data = await res.json();
+
+        if (!data.status) {
+          tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding: 15px;">Failed to load keys: ${data.message}</td></tr>`;
+          return;
+        }
+
+        // Filter keys by createdBy username
+        const keys = data.keys.filter(k => k.createdBy === username);
+
+        if (keys.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding: 15px;">No keys found.</td></tr>';
+          return;
+        }
+
+        tbody.innerHTML = '';
+        keys.forEach(key => {
+          const tr = document.createElement('tr');
+
+          const createdAt = new Date(key.createdAt).toLocaleString();
+          const expiry = key.durationHours === 0 ? 'Unlimited' : key.durationHours;
+          const devices = key.connectedDevices ? key.connectedDevices.length : 0;
+          const status = key.status || 'unknown';
+
+          tr.innerHTML = `
+            <td>${key.key}</td>
+            <td>${createdAt}</td>
+            <td>${expiry}</td>
+            <td>${devices}</td>
+            <td>${status}</td>
+            <td>
+              ${status === 'active' ? `<button class="action-btn block">Block</button>` : ''}
+              ${status === 'blocked' ? `<button class="action-btn unblock">Unblock</button>` : ''}
+              <button class="action-btn delete">Delete</button>
+            </td>
+          `;
+
+          // Add event listeners for buttons
+          if (status === 'active') {
+            tr.querySelector('.block').addEventListener('click', () => handleAction(key.id, 'block'));
+          }
+          if (status === 'blocked') {
+            tr.querySelector('.unblock').addEventListener('click', () => handleAction(key.id, 'unblock'));
+          }
+          tr.querySelector('.delete').addEventListener('click', () => handleAction(key.id, 'delete'));
+
+          tbody.appendChild(tr);
+        });
+
+      } catch (err) {
+        tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding: 15px;">Error loading keys: ${err.message}</td></tr>`;
+      }
+    }
+
+    // اب یہ فنکشن صرف ری ڈائریکٹ کرے گا generate.jsx پیج پر
+    function generateKey() {
+      window.location.href = 'generate.html';
+    }
+
+    async function handleAction(id, action) {
+      try {
+        const res = await fetch(`/api/keys/${action}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id })
+        });
+        const data = await res.json();
+
+        if (data.status) {
+          alert(`${action} successful`);
+          fetchKeys();
+        } else {
+          alert("Error: " + data.message);
+        }
+      } catch (err) {
+        alert(`Failed to ${action}: ${err.message}`);
+      }
+    }
+
+    document.getElementById('generateKeyBtn').addEventListener('click', generateKey);
+  </script>
+</body>
+</html>
